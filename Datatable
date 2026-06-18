@@ -1,1 +1,176 @@
+import React, { useState } from "react";
 
+export default function Datatable() {
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const recordsPerPage = 4;
+
+ 
+  function handleAdd() {
+    const name = prompt("Enter Name");
+    const age = prompt("Enter Age");
+    const city = prompt("Enter City");
+
+    if (!name || !age || !city) return;
+
+    const newUser = {
+      id: Date.now(),
+      name,
+      age: Number(age),
+      city,
+    };
+
+    setUsers((prevUsers) => [...prevUsers, newUser]);
+  }
+
+
+  function handleDelete(id) {
+    setUsers(users.filter((user) => user.id !== id));
+  }
+
+
+  function handleEdit(user) {
+    const name = prompt("Enter Name", user.name);
+    const age = prompt("Enter Age", user.age);
+    const city = prompt("Enter City", user.city);
+
+    if (!name || !age || !city) return;
+
+    const updatedUsers = users.map((item) =>
+      item.id === user.id
+        ? {
+            ...item,
+            name,
+            age: Number(age),
+            city,
+          }
+        : item
+    );
+
+    setUsers(updatedUsers);
+  }
+
+ 
+  const filteredData = users.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+
+  const sortedData = [...filteredData].sort((a, b) =>
+    sortOrder ? a.age - b.age : b.age - a.age
+  );
+
+
+  const lastIndex = currentPage * recordsPerPage;
+  const firstIndex = lastIndex - recordsPerPage;
+  const currentRecords = sortedData.slice(firstIndex, lastIndex);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedData.length / recordsPerPage)
+  );
+
+  return (
+    <div className="container mt-5">
+      <div className="card shadow p-4">
+        <h2 className="text-center mb-4">User Data Table</h2>
+
+      
+        <button className="btn btn-success mb-3" onClick={handleAdd}>
+          Add User
+        </button>
+
+     
+        <input
+          type="text"
+          className="form-control mb-3"
+          placeholder="Search by Name"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
+        />
+
+       
+        <button
+          className="btn btn-primary mb-3"
+          onClick={() => setSortOrder(!sortOrder)}
+        >
+          Sort Age {sortOrder ? "↑" : "↓"}
+        </button>
+
+      
+        <table className="table table-bordered table-hover text-center">
+          <thead className="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>City</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {currentRecords.length > 0 ? (
+              currentRecords.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.name}</td>
+                  <td>{user.age}</td>
+                  <td>{user.city}</td>
+                  <td>
+                    <button
+                      className="btn btn-warning me-2"
+                      onClick={() => handleEdit(user)}
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleDelete(user.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5">No Data Found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+      
+        <div className="d-flex justify-content-center gap-3">
+          <button
+            className="btn btn-secondary"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+          >
+            Prev
+          </button>
+
+          <span className="mt-2">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            className="btn btn-secondary"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
